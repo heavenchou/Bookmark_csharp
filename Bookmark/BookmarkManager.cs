@@ -35,7 +35,7 @@ namespace Bookmark
         }
 
         // 更新 TreeView 顯示
-        private void updateTreeView()
+        public void updateTreeView()
         {
             treeView.Nodes.Clear();
             foreach (var bookmark in root.Children) {
