@@ -7,20 +7,21 @@ using System.Windows.Forms;
 
 namespace Bookmark
 {
-    internal class Bookmark
+    internal class BookmarkManager
     {
-        private TreeView treeView;
-        public BookmarkItem root;
+        private TreeView treeView;          // 書籤的樹
+        public BookmarkItem BookmarkRoot;   // 書籤的根
 
-        public Bookmark(TreeView treeView)
+        public BookmarkManager(TreeView treeView, BookmarkItem root)
         {
             this.treeView = treeView;
-            root = new BookmarkItem("","");
+            BookmarkRoot = root;
         }
       
         // 加入書籤到指定的父書籤
         public void addBookmark(BookmarkItem parent, BookmarkItem newBookmark)
         {
+            if (parent.Children == null) { return; }
             parent.Children.Add(newBookmark);
             newBookmark.Parent = parent; // 設定新書籤的父書籤
             updateTreeView();
@@ -35,24 +36,36 @@ namespace Bookmark
         }
 
         // 更新 TreeView 顯示
-        public void updateTreeView()
+        // bOnlyFolder : true 表示只呈現目錄
+        public void updateTreeView(bool bOnlyFolder = false)
         {
             treeView.Nodes.Clear();
-            foreach (var bookmark in root.Children) {
-                TreeNode node = createBookmarkNode(bookmark);
-                treeView.Nodes.Add(node);
+            foreach (var bookmark in BookmarkRoot.Children) {
+                if (bOnlyFolder == false || bookmark.IsFolder == true) {
+                    TreeNode node = createBookmarkNode(bookmark, bOnlyFolder);
+                    treeView.Nodes.Add(node);
+                }
             }
         }
 
         // 將書籤轉換成 TreeNode
-        private TreeNode createBookmarkNode(BookmarkItem bookmark)
+        private TreeNode createBookmarkNode(BookmarkItem bookmark, bool bOnlyFolder)
         {
             TreeNode node = new TreeNode(bookmark.Title);
             node.Tag = bookmark;
+            if(bookmark.IsFolder == true) {
+                //node.BackColor = System.Drawing.Color.Yellow;
+                node.ImageIndex = 0;
+            } else {
+                node.ImageIndex = 2;
+            }
+            node.SelectedImageIndex = node.ImageIndex;
 
             foreach (var child in bookmark.Children) {
-                TreeNode childNode = createBookmarkNode(child);
-                node.Nodes.Add(childNode);
+                if (bOnlyFolder == false || child.IsFolder == true) {
+                    TreeNode childNode = createBookmarkNode(child, bOnlyFolder);
+                    node.Nodes.Add(childNode);
+                }
             }
 
             return node;
